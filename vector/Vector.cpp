@@ -1,7 +1,9 @@
 #include <algorithm>   
 
-template <typename Object>
+// Time Complexity for Vector(Dynamic Array)
+// Indexing: O(1), Search: O(n), Insertion: O(n), Deletion: O(n)
 
+template <typename Object>
 class Vector {
 private:
     int theSize;
