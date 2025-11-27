@@ -1,5 +1,6 @@
 #pragma once
-#include <algorithm>   
+#include <algorithm> 
+#include <cstddef>  
 
 // Time Complexity for Vector(Dynamic Array)
 // Indexing: O(1), Search: O(n), Insertion: O(n), Deletion: O(n)
@@ -7,11 +8,11 @@
 template <typename Object>
 class Vector {
 private:
-    int theSize;
-    int theCapacity;
+    std::size_t theSize;
+    std::size_t theCapacity;
     Object* objects;
 public:
-    static const int SPARE_CAPACITY = 16;
+    static const std::size_t SPARE_CAPACITY = 16;
 
     // --- types ---
     using iterator = Object*;
@@ -20,7 +21,7 @@ public:
 
     // --- Rule of 5 ---
     // Defaule Constructor
-    explicit Vector(int initSize = 0)
+    explicit Vector(std::size_t initSize = 0)
     : theSize{initSize}, 
       theCapacity{initSize + SPARE_CAPACITY},
       objects{new Object[theCapacity]}
@@ -31,7 +32,7 @@ public:
       theCapacity{rhs.theCapacity},
       objects{new Object[theCapacity]}
     {
-        for(int i = 0; i < theSize; i++){
+        for(std::size_t i = 0; i < theSize; i++){
             objects[i] = rhs.objects[i];
         }
     }
@@ -54,9 +55,17 @@ public:
     }   
     // Move assignment
     Vector& operator=(Vector&& rhs) noexcept{
-        std::swap(theSize, rhs.theSize);
-        std::swap(theCapacity, rhs.theCapacity);
-        std::swap(objects, rhs.objects);
+        if (this != rhs){
+            delete[] objects;
+
+            theSize = rhs.theSize;
+            theCapacity = rhs.theCapacity;
+            objects = rhs.objects;
+
+            rhs.theSize = 0;
+            rhs.theCapacity = 0;
+            rhs.objects = nullptr;
+        }
         return *this;
     } 
     // Destructor
@@ -66,10 +75,10 @@ public:
 
 
     // --- element access ---
-    Object& operator[](int index){
+    Object& operator[](std::size_t index){
         return objects[index];
     }
-    const Object& operator[](int index) const{
+    const Object& operator[](std::size_t index) const{
         return objects[index];
     }
     const Object& back() const{
@@ -80,10 +89,10 @@ public:
     bool empty() const{
         return theSize == 0;
     }
-    int size() const{
+    std::size_t size() const{
         return theSize;
     }
-    int capacity() const{
+    std::size_t capacity() const{
         return theCapacity;
     }
 
@@ -114,7 +123,7 @@ public:
 
 
     // change the size of the vector
-    void resize(int newSize){
+    void resize(std::size_t newSize){
 
         // no <= 0 value allow
         if(newSize < 0){
@@ -126,7 +135,7 @@ public:
         }
 
         // when theSize < theCapacity but expand then default construct the new elements
-        for(int i = theSize; i < newSize; i++){
+        for(std::size_t i = theSize; i < newSize; i++){
             objects[i] = Object{};
         }
 
@@ -139,7 +148,7 @@ public:
     //change the capacity of the vector(increase generally)
     // the capacity is changed by obtaining a new block of memory for the primitive array, copying the old block into the 
     // new block, and reclaiming the old block 
-    void reserve(int newCapacity){
+    void reserve(std::size_t newCapacity){
         if (newCapacity <= theSize){
             return;
         }
@@ -147,7 +156,7 @@ public:
         // reserve a new memory block and move all the objects to the new block
         // use move to prevent big size vector copy
         Object* newArray = new Object[newCapacity];
-        for (int i = 0; i < theSize; i++){
+        for (std::size_t i = 0; i < theSize; i++){
             newArray[i] = std::move(objects[i]);
         }
         theCapacity = newCapacity;

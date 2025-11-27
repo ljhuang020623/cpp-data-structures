@@ -1,21 +1,20 @@
 #pragma once
 #include <iostream>
-#include <vector>
 #include <utility>
 #include <cassert>
-
+#include <cstddef>
 
 template<typename T>
 class StackArray{
 
 public:
-    static const int SPARE_CAPACITY = 16;
+    static const std::size_t SPARE_CAPACITY = 16;
 
 
 
     // ========== Rule of 5 ========= 
     // Constructor
-    explicit StackArray(int initCapacity = SPARE_CAPACITY)
+    explicit StackArray(std::size_t initCapacity = SPARE_CAPACITY)
     : m_size{0}, 
       m_capacity{initCapacity}, 
       m_data {new T[m_capacity]}{}
@@ -31,7 +30,7 @@ public:
       m_capacity(other.m_capacity),
       m_data(new T[m_capacity])
     {
-        for (int i = 0; i != m_size; ++i) {
+        for (std::size_t i = 0; i != m_size; ++i) {
             m_data[i] = other.m_data[i];
         }
     }
@@ -59,10 +58,20 @@ public:
     
     // Move assignment
     StackArray& operator=(StackArray&& other) noexcept{
-        std::swap(m_size, other.m_size);
-        std::swap(m_capacity, other.m_capacity);
-        std::swap(m_data, other.m_data);
-        return *this; 
+        if (this != other){
+            // must free current resource of *this first prevent leak memory
+            delete[] m_data;
+
+            m_size = other.m_size;
+            m_capacity = other.m_capacity;
+            m_data = other.m_data;
+
+            // the core of move semantics is to steal from other, so remember to set it back default after moved
+            other.m_size = 0;
+            other.m_capacity = 0;
+            other.m_data = nullptr;
+        }
+        return *this;
     }
     void push(const T& value){
         ensure_capacity();
@@ -88,10 +97,10 @@ public:
     }
 
 
-    int size() const noexcept{
+    std::size_t size() const noexcept{
         return m_size;
     }
-    int capacity() const noexcept{
+    std::size_t capacity() const noexcept{
         return m_capacity;
     }
     bool empty() const noexcept{
@@ -103,8 +112,8 @@ public:
 
 private:
     // the amount of item the stack holds
-    int m_size;
-    int m_capacity; 
+    std::size_t m_size;
+    std::size_t m_capacity; 
     // the pointer to the first element of that stack
     T* m_data;
 
@@ -113,9 +122,9 @@ private:
             return;
         }
 
-        int new_capacity = m_capacity * 2 + 1;
+        std::size_t new_capacity = m_capacity * 2 + 1;
         T* newStack = new T[new_capacity];
-        for(int i = 0; i != m_size; ++i){
+        for(std::size_t i = 0; i != m_size; ++i){
             newStack[i] = m_data[i];
         }
         delete[] m_data;
